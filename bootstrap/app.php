@@ -11,15 +11,24 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
 
-    ->withMiddleware(function (Middleware $middleware): void {
+    ->withMiddleware(function (Middleware $middleware) {
+
+        /*
+        |--------------------------------------------------------------------------
+        | SSLCommerz CSRF Exception
+        |--------------------------------------------------------------------------
+        */
 
         $middleware->validateCsrfTokens(except: [
-            'sslcommerz/*',
+            'sslcommerz/success',
+            'sslcommerz/fail',
+            'sslcommerz/cancel',
+            'sslcommerz/ipn',
         ]);
 
     })
 
-    ->withExceptions(function (Exceptions $exceptions): void {
+    ->withExceptions(function (Exceptions $exceptions) {
         //
     })
 

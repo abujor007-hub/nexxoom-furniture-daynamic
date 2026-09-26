@@ -1,4 +1,3 @@
-
 @php
 
     $cart = session()->get('cart', []);
@@ -8,10 +7,11 @@
     foreach ($cart as $item) {
         $cartCount += $item['quantity'];
         $cartTotal += $item['price'] * $item['quantity'];
-
-  
-   
     }
+
+    // Product id => stock (ek query te shob product er stock)
+    $stocks = \App\Models\Product::whereIn('id', array_keys($cart))->pluck('quantity', 'id');
+
 @endphp
 
 <!DOCTYPE html>
@@ -76,13 +76,12 @@
                 </a>
 
 
-                <a href="{{ $link->facebook}}" target="_blank"
-                 
+                <a href="{{ $link->facebook ?? '#' }}" target="_blank"
                     class="social-icon d-flex align-items-center justify-content-center rounded-circle bg-white text-decoration-none"
                     style="width:22px;height:22px;color:#1877F2!important;">
 
                     <i class="bi bi-facebook" style="font-size:12px;"></i>
-                     
+
                 </a>
 
 
@@ -104,7 +103,7 @@
                 </a>
 
 
-                <a href="{{ $link->email  }}" target="_blank"
+                <a href="{{ $link->email ?? '#' }}" target="_blank"
                     class="social-icon d-flex align-items-center text-decoration-none">
 
                     <span class="d-flex align-items-center justify-content-center rounded-circle bg-white"
@@ -123,12 +122,10 @@
 
             <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-end gap-2">
 
-                <a href="tel:    {{ $link->phone ?? '#' }}" target="_blank"
+                <a href="tel:{{ $link->phone ?? '#' }}" target="_blank"
                     class="text-white text-decoration-none small">
 
                     <i class="bi bi-telephone-fill me-1"></i>
-
-                
 
                 </a>
 
@@ -142,7 +139,7 @@
 
                         <a href="#"
                             class="text-white text-decoration-none dropdown-toggle small"
-                            data-bs-toggle="dropdown">
+                            data-account-toggle aria-expanded="false">
 
                             <i class="bi bi-person-fill me-1"></i>
 
@@ -230,7 +227,7 @@
 
                         <a href="#"
                             class="text-white text-decoration-none dropdown-toggle small"
-                            data-bs-toggle="dropdown">
+                            data-account-toggle aria-expanded="false">
 
                             <i class="bi bi-person-fill me-1"></i>
 
@@ -263,6 +260,18 @@
                                     <i class="bi bi-bag me-2"></i>
 
                                     Register
+
+                                </a>
+
+                            </li>
+                              <li>
+
+                                <a class="dropdown-item"
+                                    href="{{ route('orders.page') }}">
+
+                                    <i class="bi bi-bag-check me-2"></i>
+
+                                    Order
 
                                 </a>
 
@@ -353,86 +362,31 @@
             <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-lg-center">
 
                 <li class="nav-item">
-
-                    <a class="nav-link px-3 py-1 fw-medium text-nex"
-                        href="{{ route('home.page') }}">
-
-                        Home
-
-                    </a>
-
+                    <a class="nav-link px-3 py-1 fw-medium text-nex" href="{{ route('home.page') }}">Home</a>
                 </li>
 
-
                 <li class="nav-item">
-
-                    <a class="nav-link px-3 py-1 fw-medium text-nex"
-                        href="{{ route('newArrivel.page') }}">
-
-                        New Arrivals
-
-                    </a>
-
+                    <a class="nav-link px-3 py-1 fw-medium text-nex" href="{{ route('newArrivel.page') }}">New Arrivals</a>
                 </li>
 
-
                 <li class="nav-item">
-
-                    <a class="nav-link px-3 py-1 fw-medium text-nex"
-                        href="{{ route('bed.page') }}">
-
-                        Bed
-
-                    </a>
-
+                    <a class="nav-link px-3 py-1 fw-medium text-nex" href="{{ route('bed.page') }}">Bed</a>
                 </li>
 
-
                 <li class="nav-item">
-
-                    <a class="nav-link px-3 py-1 fw-medium text-nex"
-                        href="{{ route('sofa.page') }}">
-
-                        Sofa
-
-                    </a>
-
+                    <a class="nav-link px-3 py-1 fw-medium text-nex" href="{{ route('sofa.page') }}">Sofa</a>
                 </li>
 
-
                 <li class="nav-item">
-
-                    <a class="nav-link px-3 py-1 fw-medium text-nex"
-                        href="{{ route('chair.page') }}">
-
-                        Chair
-
-                    </a>
-
+                    <a class="nav-link px-3 py-1 fw-medium text-nex" href="{{ route('chair.page') }}">Chair</a>
                 </li>
 
-
                 <li class="nav-item">
-
-                    <a class="nav-link px-3 py-1 fw-medium text-nex"
-                        href="{{ route('shop.page') }}">
-
-                        Shop
-
-                    </a>
-
+                    <a class="nav-link px-3 py-1 fw-medium text-nex" href="{{ route('shop.page') }}">Shop</a>
                 </li>
 
-
                 <li class="nav-item">
-
-                    <a class="nav-link px-3 py-1 fw-medium text-nex"
-                        href="{{ route('contact.page') }}">
-
-                        Contact
-
-                    </a>
-
+                    <a class="nav-link px-3 py-1 fw-medium text-nex" href="{{ route('contact.page') }}">Contact</a>
                 </li>
 
             </ul>
@@ -539,9 +493,7 @@
     <div class="offcanvas-body d-flex flex-column px-4">
 
 
-        <!-- =====================================================
-             MOBILE SEARCH
-        ====================================================== -->
+        <!-- MOBILE SEARCH -->
 
         <div class="mb-3">
 
@@ -582,96 +534,37 @@
 
 
 
-        <!-- =====================================================
-             MOBILE MENU LINKS
-        ====================================================== -->
+        <!-- MOBILE MENU LINKS -->
 
         <ul class="navbar-nav">
 
+            <li class="nav-item">
+                <a class="nav-link px-3 py-1 fw-medium text-nex" href="{{ route('home.page') }}">Home</a>
+            </li>
 
-                <li class="nav-item">
+            <li class="nav-item">
+                <a class="nav-link px-3 py-1 fw-medium text-nex" href="{{ route('newArrivel.page') }}">New Arrivals</a>
+            </li>
 
-                    <a class="nav-link px-3 py-1 fw-medium text-nex"
-                        href="{{ route('home.page') }}">
+            <li class="nav-item">
+                <a class="nav-link px-3 py-1 fw-medium text-nex" href="{{ route('bed.page') }}">Bed</a>
+            </li>
 
-                        Home
+            <li class="nav-item">
+                <a class="nav-link px-3 py-1 fw-medium text-nex" href="{{ route('sofa.page') }}">Sofa</a>
+            </li>
 
-                    </a>
+            <li class="nav-item">
+                <a class="nav-link px-3 py-1 fw-medium text-nex" href="{{ route('chair.page') }}">Chair</a>
+            </li>
 
-                </li>
+            <li class="nav-item">
+                <a class="nav-link px-3 py-1 fw-medium text-nex" href="{{ route('shop.page') }}">Shop</a>
+            </li>
 
-
-                <li class="nav-item">
-
-                    <a class="nav-link px-3 py-1 fw-medium text-nex"
-                        href="{{ route('newArrivel.page') }}">
-
-                        New Arrivals
-
-                    </a>
-
-                </li>
-
-
-                <li class="nav-item">
-
-                    <a class="nav-link px-3 py-1 fw-medium text-nex"
-                        href="{{ route('bed.page') }}">
-
-                        Bed
-
-                    </a>
-
-                </li>
-
-
-                <li class="nav-item">
-
-                    <a class="nav-link px-3 py-1 fw-medium text-nex"
-                        href="{{ route('sofa.page') }}">
-
-                        Sofa
-
-                    </a>
-
-                </li>
-
-
-                <li class="nav-item">
-
-                    <a class="nav-link px-3 py-1 fw-medium text-nex"
-                        href="{{ route('chair.page') }}">
-
-                        Chair
-
-                    </a>
-
-                </li>
-
-
-                <li class="nav-item">
-
-                    <a class="nav-link px-3 py-1 fw-medium text-nex"
-                        href="{{ route('shop.page') }}">
-
-                        Shop
-
-                    </a>
-
-                </li>
-
-
-                <li class="nav-item">
-
-                    <a class="nav-link px-3 py-1 fw-medium text-nex"
-                        href="{{ route('contact.page') }}">
-
-                        Contact
-
-                    </a>
-
-                </li>
-
+            <li class="nav-item">
+                <a class="nav-link px-3 py-1 fw-medium text-nex" href="{{ route('contact.page') }}">Contact</a>
+            </li>
 
         </ul>
 
@@ -721,6 +614,9 @@
 
             @forelse($cart as $item)
 
+                @php
+                    $stockLeft = ($stocks[$item['id']] ?? 0) - $item['quantity'];
+                @endphp
 
                 <div class="card border rounded-3 shadow-sm mb-3">
 
@@ -750,6 +646,13 @@
                                 </div>
 
 
+                                <!-- STOCK LEFT -->
+                                <small class="text-muted d-block mb-1">
+                                    Stock left:
+                                    <span class="stock-left-{{ $item['id'] }}">{{ $stockLeft }}</span>
+                                </small>
+
+
                                 <div class="d-flex align-items-center gap-2">
 
 
@@ -774,7 +677,8 @@
                                     <button type="button"
                                         class="btn btn-light rounded-circle p-1 qty-btn"
                                         data-id="{{ $item['id'] }}"
-                                        data-action="inc">
+                                        data-action="inc"
+                                        {{ $stockLeft <= 0 ? 'disabled' : '' }}>
 
                                         <i class="bi bi-plus"></i>
 
@@ -920,151 +824,171 @@
 
 
 
-<!-- Bootstrap JS -->
+<!-- Bootstrap JS (ekbar-i thakbe) -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<!-- ACCOUNT DROPDOWN (Bootstrap JS duplicate hole-o eta kaj korbe) -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    function closeAccountMenus() {
+        document.querySelectorAll('.account-menu.show').forEach(function (menu) {
+            menu.classList.remove('show');
+            var t = menu.parentElement.querySelector('[data-account-toggle]');
+            if (t) {
+                t.classList.remove('show');
+                t.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
+    document.querySelectorAll('[data-account-toggle]').forEach(function (toggle) {
+
+        var menu = toggle.parentElement.querySelector('.dropdown-menu');
+
+        if (!menu) {
+            return;
+        }
+
+        menu.classList.add('account-menu');
+        menu.setAttribute('data-bs-popper', 'static');
+
+        toggle.addEventListener('click', function (e) {
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            var isOpen = menu.classList.contains('show');
+
+            closeAccountMenus();
+
+            if (!isOpen) {
+                menu.classList.add('show');
+                toggle.classList.add('show');
+                toggle.setAttribute('aria-expanded', 'true');
+            }
+        });
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.dropdown')) {
+            closeAccountMenus();
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            closeAccountMenus();
+        }
+    });
+
+});
+</script>
 
 
 @include('alart.message')
 
 
+{{-- ===== ERROR MESSAGE (out of stock / not enough stock) =====
+     Jodi tomar alart.message file e already session('error') dekhay,
+     tahole ei @if block ta muche dio, nahole double dekhabe. --}}
+@if (session('error'))
+    <div class="alert alert-danger alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3 shadow"
+        style="z-index:2000;" role="alert">
 
-<!-- DESKTOP PRODUCT LIVE SEAR-->
+        {{ session('error') }}
+
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+
+    </div>
+@endif
+
+
+
+<!-- DESKTOP PRODUCT LIVE SEARCH -->
 
 <script>
 
 document.addEventListener('DOMContentLoaded', function () {
 
-
-    const searchInput =
-        document.getElementById('productSearch');
-
-    const searchForm =
-        document.getElementById('productSearchForm');
-
-    const searchResults =
-        document.getElementById('searchResults');
-
+    const searchInput = document.getElementById('productSearch');
+    const searchForm = document.getElementById('productSearchForm');
+    const searchResults = document.getElementById('searchResults');
 
     if (!searchInput || !searchForm || !searchResults) {
         return;
     }
 
-
     searchForm.addEventListener('submit', function (e) {
-
         e.preventDefault();
-
     });
-
 
     searchInput.addEventListener('input', function () {
 
-
-        const search =
-            this.value.trim();
-
+        const search = this.value.trim();
 
         if (search.length === 0) {
-
             searchResults.innerHTML = '';
-
             return;
-
         }
 
-
-        fetch(
-            `{{ route('product.live.search') }}?search=${encodeURIComponent(search)}`
-        )
-
+        fetch(`{{ route('product.live.search') }}?search=${encodeURIComponent(search)}`)
 
         .then(function (response) {
-
             return response.json();
-
         })
-
 
         .then(function (products) {
 
-
             searchResults.innerHTML = '';
-
 
             if (products.length === 0) {
 
                 searchResults.innerHTML = `
-
                     <div class="p-2 text-muted small">
-
                         No product found
-
                     </div>
-
                 `;
 
                 return;
-
             }
-
 
             products.forEach(function (product) {
 
-
                 searchResults.innerHTML += `
-
                     <a
                         href="{{ url('product/details') }}/${product.id}"
                         class="d-block text-decoration-none text-dark border-bottom p-2">
 
                         <div class="fw-semibold">
-
                             ${product.title}
-
                         </div>
 
                         <small class="text-success">
-
                             ৳${product.price}
-
                         </small>
 
                     </a>
-
                 `;
-
             });
-
 
         })
 
-
         .catch(function (error) {
-
-            console.error(
-                'Live Search Error:',
-                error
-            );
-
+            console.error('Live Search Error:', error);
         });
 
-
     });
-
 
     document.addEventListener('click', function (e) {
 
-
         if (!searchForm.contains(e.target)) {
-
             searchResults.innerHTML = '';
-
         }
 
-
     });
-
 
 });
 
@@ -1078,145 +1002,74 @@ document.addEventListener('DOMContentLoaded', function () {
 
 document.addEventListener('DOMContentLoaded', function () {
 
+    const mobileSearchInput = document.getElementById('mobileProductSearch');
+    const mobileSearchForm = document.getElementById('mobileProductSearchForm');
+    const mobileSearchResults = document.getElementById('mobileSearchResults');
 
-    const mobileSearchInput =
-        document.getElementById('mobileProductSearch');
-
-
-    const mobileSearchForm =
-        document.getElementById('mobileProductSearchForm');
-
-
-    const mobileSearchResults =
-        document.getElementById('mobileSearchResults');
-
-
-    if (
-        !mobileSearchInput ||
-        !mobileSearchForm ||
-        !mobileSearchResults
-    ) {
-
+    if (!mobileSearchInput || !mobileSearchForm || !mobileSearchResults) {
         return;
-
     }
 
-
-
-
     mobileSearchForm.addEventListener('submit', function (e) {
-
         e.preventDefault();
-
     });
-
-
-
 
     mobileSearchInput.addEventListener('input', function () {
 
-
-        const search =
-            this.value.trim();
-
-
-
+        const search = this.value.trim();
 
         if (search.length === 0) {
-
             mobileSearchResults.innerHTML = '';
-
             return;
-
         }
 
-
-
-
-        fetch(
-            `{{ route('product.live.search') }}?search=${encodeURIComponent(search)}`
-        )
-
+        fetch(`{{ route('product.live.search') }}?search=${encodeURIComponent(search)}`)
 
         .then(function (response) {
-
             return response.json();
-
         })
-
 
         .then(function (products) {
 
-
             mobileSearchResults.innerHTML = '';
 
-
-
-        
             if (products.length === 0) {
 
                 mobileSearchResults.innerHTML = `
-
                     <div class="p-2 text-muted small">
-
                         No product found
-
                     </div>
-
                 `;
 
                 return;
-
             }
-
-
-
 
             products.forEach(function (product) {
 
-
                 mobileSearchResults.innerHTML += `
-
                     <a
                         href="{{ url('product/details') }}/${product.id}"
                         class="d-block text-decoration-none text-dark border-bottom p-2">
 
                         <div class="fw-semibold">
-
                             ${product.title}
-
                         </div>
 
-
                         <small class="text-success">
-
                             ৳${product.price}
-
                         </small>
 
                     </a>
-
                 `;
-
-
             });
-
 
         })
 
-
         .catch(function (error) {
-
-            console.error(
-                'Mobile Live Search Error:',
-                error
-            );
-
+            console.error('Mobile Live Search Error:', error);
         });
 
-
     });
-
 
 });
 
@@ -1224,204 +1077,94 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-<!--GLOBAL CART AJAX -->
+<!-- GLOBAL CART AJAX -->
 
 <script>
 
 (function () {
 
-
     const CSRF = document
         .querySelector('meta[name="csrf-token"]')
         .getAttribute('content');
 
-
-    const UPDATE_URL =
-        "{{ route('cart.quantity.update') }}";
+    const UPDATE_URL = "{{ route('cart.quantity.update') }}";
 
 
     function syncAll(productId, data) {
 
-
         // Offcanvas quantity
-
-        const offQty =
-            document.getElementById(
-                'offcanvas-qty-' + productId
-            );
-
-
+        const offQty = document.getElementById('offcanvas-qty-' + productId);
         if (offQty) {
-
-            offQty.innerText =
-                data.quantity;
-
+            offQty.innerText = data.quantity;
         }
-
-
 
         // Checkout quantity
-
-        const coQty =
-            document.getElementById(
-                'qty-' + productId
-            );
-
-
+        const coQty = document.getElementById('qty-' + productId);
         if (coQty) {
-
-            coQty.innerText =
-                data.quantity;
-
+            coQty.innerText = data.quantity;
         }
-
-
 
         // Item total
-
-        document
-            .querySelectorAll(
-                '.item-total-' + productId
-            )
-            .forEach(function (el) {
-
-                el.innerText =
-                    '৳' + data.itemTotal;
-
-            });
-
-
+        document.querySelectorAll('.item-total-' + productId).forEach(function (el) {
+            el.innerText = '৳' + data.itemTotal;
+        });
 
         // Offcanvas grand total
-
-        const gt =
-            document.getElementById(
-                'cart-grand-total'
-            );
-
-
+        const gt = document.getElementById('cart-grand-total');
         if (gt) {
-
-            gt.innerText =
-                '৳' +
-                Number(data.cartTotal).toFixed(2);
-
+            gt.innerText = '৳' + Number(data.cartTotal).toFixed(2);
         }
-
-
 
         // Checkout subtotal
-
-        const sub =
-            document.getElementById(
-                'subtotalDisplay'
-            );
-
-
+        const sub = document.getElementById('subtotalDisplay');
         if (sub) {
-
-            sub.innerText =
-                data.cartTotal;
-
+            sub.innerText = data.cartTotal;
         }
-
-
 
         // Checkout item count
-
-        const cnt =
-            document.getElementById(
-                'itemCount'
-            );
-
-
+        const cnt = document.getElementById('itemCount');
         if (cnt) {
-
-            cnt.innerText =
-                data.cartCount;
-
+            cnt.innerText = data.cartCount;
         }
-
-
 
         // Checkout total
-
-        const tot =
-            document.getElementById(
-                'totalDisplay'
-            );
-
-
-        const shippingEl =
-            document.getElementById(
-                'shippingDisplay'
-            );
-
-
-        const shipping =
-            shippingEl
-                ? Number(shippingEl.innerText)
-                : 150;
-
+        const tot = document.getElementById('totalDisplay');
+        const shippingEl = document.getElementById('shippingDisplay');
+        const shipping = shippingEl ? Number(shippingEl.innerText) : 150;
 
         if (tot) {
-
-            tot.innerText =
-                shipping +
-                Number(data.cartTotal);
-
+            tot.innerText = shipping + Number(data.cartTotal);
         }
-
-
 
         // All cart count badges
-
-        document
-            .querySelectorAll('.cart-count')
-            .forEach(function (el) {
-
-                el.innerText =
-                    data.cartCount;
-
-            });
-
-
+        document.querySelectorAll('.cart-count').forEach(function (el) {
+            el.innerText = data.cartCount;
+        });
 
         // Floating cart count
-
-        const fcc =
-            document.querySelector(
-                '.floating-cart-count'
-            );
-
-
+        const fcc = document.querySelector('.floating-cart-count');
         if (fcc) {
-
-            fcc.innerText =
-                data.cartCount;
-
+            fcc.innerText = data.cartCount;
         }
-
-
 
         // Floating cart price
-
-        const fcp =
-            document.querySelector(
-                '.floating-cart-price'
-            );
-
-
+        const fcp = document.querySelector('.floating-cart-price');
         if (fcp) {
-
-            fcp.innerText =
-                '৳' +
-                Number(data.cartTotal).toFixed(2);
-
+            fcp.innerText = '৳' + Number(data.cartTotal).toFixed(2);
         }
 
-    }
+        // ===== STOCK LEFT UPDATE (inc korle kombe, dec korle barbe) =====
+        document.querySelectorAll('.stock-left-' + productId).forEach(function (el) {
+            el.innerText = data.remaining;
+        });
 
+        // Stock shesh hole + button disable, nahole enable
+        document
+            .querySelectorAll('.qty-btn[data-id="' + productId + '"][data-action="inc"]')
+            .forEach(function (b) {
+                b.disabled = data.remaining <= 0;
+            });
+    }
 
 
     /*
@@ -1432,123 +1175,69 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.addEventListener('click', function (e) {
 
-
-        const btn =
-            e.target.closest('.qty-btn');
-
+        const btn = e.target.closest('.qty-btn');
 
         if (!btn) {
-
             return;
-
         }
-
 
         e.preventDefault();
 
-
-        const productId =
-            btn.dataset.id;
-
-
-        const action =
-            btn.dataset.action;
-
+        const productId = btn.dataset.id;
+        const action = btn.dataset.action;
 
         if (btn.disabled) {
-
             return;
-
         }
 
-
         btn.disabled = true;
-
-
 
         fetch(UPDATE_URL, {
 
             method: 'POST',
 
             headers: {
-
                 'Content-Type': 'application/json',
-
                 'X-CSRF-TOKEN': CSRF,
-
                 'Accept': 'application/json'
-
             },
 
-
             body: JSON.stringify({
-
                 product_id: productId,
-
                 action: action
-
             })
 
         })
 
-
         .then(function (response) {
-
             return response.json();
-
         })
-
 
         .then(function (data) {
 
-
             btn.disabled = false;
 
-
             if (!data.success) {
-
-                alert(
-                    data.message ||
-                    'Update failed'
-                );
-
+                alert(data.message || 'Update failed');
                 return;
-
             }
 
-
-            syncAll(
-                data.productId ||
-                productId,
-                data
-            );
-
+            syncAll(data.productId || productId, data);
 
         })
 
-
         .catch(function (error) {
-
 
             btn.disabled = false;
 
-
             console.error(error);
 
-
-            alert(
-                'Something went wrong'
-            );
-
+            alert('Something went wrong');
 
         });
 
-
     });
-
 
 })();
 
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>

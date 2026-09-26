@@ -3,131 +3,146 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use App\Models\product;
+use App\Models\Product;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-   public function view()
-{
-    $user = Auth::user();
-    
-    
-
-    if ($user->user_type == 'admin') {
-        return view('pages.admin-dashboard.nexxoom-dashboard', [
-            'user' => $user,
-        ]);
-    } else {
-
-        return view('user-dashboard.user-dashboard', [
-            'user' => $user,
-        ]);
-    }
-
-   
-    }
-
-    
- function profile(){
-    $user = Auth::user();
-    return view('pages.admin-dashboard.profile', [
-        'user' => $user,
-    ]);
- 
-}
-  public function index()
+    /**
+     * Dashboard
+     */
+    public function index()
     {
- 
+        $user = Auth::user();
 
-        // Total users
-        $totalUsers = User::count();
+        /*
+        |--------------------------------------------------------------------------
+        | Admin Dashboard
+        |--------------------------------------------------------------------------
+        */
+        if ($user->user_type == 'admin') {
 
-        // Total orders
-        $totalOrders = Order::count();
+            // Total Users
+            $totalUsers = User::count();
 
-        // Order status count
-        $deliveredOrders = Order::where('status', 'delivered')->count();
+            // Total Orders
+            $totalOrders = Order::count();
 
-        $pendingOrders = Order::where('status', 'pending')->count();
+            // Order Status Count
+            $deliveredOrders = Order::where('status', 'delivered')->count();
 
-        $processingOrders = Order::where('status', 'processing')->count();
+            $pendingOrders = Order::where('status', 'pending')->count();
 
-        $shippedOrders = Order::where('status', 'shipped')->count();
+            $processingOrders = Order::where('status', 'processing')->count();
 
+            $shippedOrders = Order::where('status', 'shipped')->count();
 
+            // Low Stock Products Count
+            $lowStockProducts = Product::where(
+                'quantity',
+                '<=',
+                5
+            )->count();
 
-        $lowStockProducts = Product::where('quantity', '<=', 5)->count();
+            // Recent 15 Orders
+            $recentOrders = Order::with([
+                'user',
+                'items.product'
+            ])
+                ->latest()
+                ->take(15)
+                ->get();
 
-
-   
-        $recentOrders = Order::with([
-            'user',
-            'items.product'
-        ])
-            ->latest()
-            ->take(15)
-            ->get();
-
-
-
-        $orderStatuses = Order::select(
-            'status',
-            DB::raw('COUNT(*) as total')
-        )
-            ->groupBy('status')
-            ->pluck('total', 'status');
-
-        $topProducts = DB::table('order_items')
-            ->join(
-                'products',
-                'order_items.product_id',
-                '=',
-                'products.id'
+            // Order Statuses
+            $orderStatuses = Order::select(
+                'status',
+                DB::raw('COUNT(*) as total')
             )
-            ->select(
-                'products.id',
-                'products.title',
-                DB::raw('SUM(order_items.quantity) as total_sold')
+                ->groupBy('status')
+                ->pluck('total', 'status');
+
+            // Top 5 Products
+            $topProducts = DB::table('order_items')
+                ->join(
+                    'products',
+                    'order_items.product_id',
+                    '=',
+                    'products.id'
+                )
+                ->select(
+                    'products.id',
+                    'products.title',
+                    DB::raw(
+                        'SUM(order_items.quantity) as total_sold'
+                    )
+                )
+                ->groupBy(
+                    'products.id',
+                    'products.title'
+                )
+                ->orderByDesc('total_sold')
+                ->take(5)
+                ->get();
+
+            // Stock Alerts
+            $stockAlerts = Product::where(
+                'quantity',
+                '<=',
+                5
             )
-            ->groupBy(
-                'products.id',
-                'products.title'
-            )
-            ->orderByDesc('total_sold')
-            ->take(5)
-            ->get();
+                ->orderBy('quantity', 'asc')
+                ->take(5)
+                ->get();
 
+            // Admin Dashboard View
+            return view(
+                'pages.admin-dashboard.nexxoom-dashboard',
+                compact(
+                    'user',
+                    'totalUsers',
+                    'totalOrders',
+                    'deliveredOrders',
+                    'pendingOrders',
+                    'processingOrders',
+                    'shippedOrders',
+                    'lowStockProducts',
+                    'recentOrders',
+                    'orderStatuses',
+                    'topProducts',
+                    'stockAlerts'
+                )
+            );
+        }
 
- 
-
-        $stockAlerts = Product::where('quantity', '<=', 5)
-            ->orderBy('quantity', 'asc')
-            ->take(5)
-            ->get();
-
+        /*
+        |--------------------------------------------------------------------------
+        | Normal User Dashboard
+        |--------------------------------------------------------------------------
+        */
 
         return view(
-            'pages.admin-dashboard.nexxoom-dashboard',
-            compact(
-                'totalUsers',
-                'totalOrders',
-                'deliveredOrders',
-                'pendingOrders',
-                'processingOrders',
-                'shippedOrders',
-                'lowStockProducts',
-                'recentOrders',
-                'orderStatuses',
-                'topProducts',
-                'stockAlerts'
-            )
+            'user-dashboard.user-dashboard',
+            [
+                'user' => $user,
+            ]
         );
     }
 
+
+    /**
+     * Admin Profile
+     */
+    public function profile()
+    {
+        $user = Auth::user();
+
+        return view(
+            'pages.admin-dashboard.profile',
+            [
+                'user' => $user,
+            ]
+        );
+    }
 }
-
-

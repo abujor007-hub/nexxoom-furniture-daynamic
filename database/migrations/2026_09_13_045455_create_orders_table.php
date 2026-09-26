@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('fullName');
+            $table->string('first_name');
+            $table->string('last_name');
             $table->string('phone');
             $table->string('email');
             $table->string('address');
@@ -24,6 +25,10 @@ return new class extends Migration
             $table->decimal('total', 10, 2);
             $table->string('status')->default('pending');
             $table->string('paymentMethod')->default('Cash On Deleviry ');
+            $table->string('country');
+            $table->string('city');
+            $table->string('distirct');
+            $table->string('post_code');
             
             $table->timestamps();
         });

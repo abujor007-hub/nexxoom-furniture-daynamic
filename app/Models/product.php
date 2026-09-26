@@ -22,4 +22,10 @@ class product extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+  public function multipleImages()
+    {
+        return $this->hasMany(MultipleImage::class, 'product_id');
+    }
+
 }

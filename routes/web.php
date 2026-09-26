@@ -19,9 +19,9 @@ Route::get('/auth/google', [GoogleController::class, 'redirect'])
 
 Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
 
 Route::middleware('auth')->group(function () {
@@ -40,8 +40,9 @@ Route::put('/settings/password', [SettingsController::class, 'updatePassword'])-
 
 
 // main page controller start
+Route::get('/', [pages_conntroller::class, 'home']);
 Route::get('home', [pages_conntroller::class, 'home'])->name('home.page');
-Route::get('newArrivel', [pages_conntroller::class, 'newArrivel'])->name('newArrivel.page');
+Route::get('new-arrivel', [pages_conntroller::class, 'newArrivel'])->name('newArrivel.page');
 Route::get('shop', [pages_conntroller::class, 'shop'])->name('shop.page');
 Route::get('bed', [pages_conntroller::class, 'bed'])->name('bed.page');
 Route::get('sofa', [pages_conntroller::class, 'sofa'])->name('sofa.page');
@@ -99,8 +100,7 @@ Route::get('product/slider',[ProductController::class,'slider'])->name('product.
 Route::get('product/details/{id}', [ProductController::class, 'details'])->name('product.details');
 
 
-Route::get('/add-to-cart/{id}', [ProductController::class, 'addToCartStore'])
-    ->name('addtocart.store');
+Route::get('/add-to-cart/{id}', [ProductController::class, 'addToCartStore']) ->name('addtocart.store');
 
 
 /*
@@ -119,11 +119,20 @@ Route::get('cartitemdelte/{id}', [ProductController::class, 'addToCartItemDelete
 // dashboard controller end
 
 // order route start
-Route::put('order', [OrderController::class, 'store'])->middleware('auth')->name('order');
+Route::put('order', [OrderController::class, 'store'])->name('order');
 Route::get('orderConfirm/{id}', [OrderController::class, 'orderConfirm'])->name('order.confirm');
 // order route end
 
 // payment rout start 
+Route::get('checkout', [pages_conntroller::class, 'checkout'])
+    ->name('checkout.page');
+
+Route::put('order', [OrderController::class, 'store'])
+    ->name('order');
+
+Route::get('orderConfirm/{id}', [OrderController::class, 'orderConfirm'])
+    ->name('order.confirm');
+
 Route::get('/sslcommerz/pay/{id}', [SSLCommerzController::class, 'pay'])
     ->name('sslcommerz.pay');
 
